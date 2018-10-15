@@ -62,10 +62,15 @@ namespace PlexHelper
 				selectedEpisodes.Add(selected as Episode);
 			}
 
-			foreach (Episode episode in selectedEpisodes)
+			if (selectedEpisodes.Count > 0)
 			{
-				PlexViewModel.RightSeason.RemoveEpisode(episode);
-				PlexViewModel.LeftSeason.AddEpisode(episode);
+				foreach (Episode episode in selectedEpisodes)
+				{
+					PlexViewModel.RightSeason.RemoveEpisode(episode);
+					PlexViewModel.LeftSeason.AddEpisode(episode);
+				}
+
+				PlexViewModel.SelectedShow.MarkDirty();
 			}
 		}
 
@@ -84,10 +89,15 @@ namespace PlexHelper
 				selectedEpisodes.Add(selected as Episode);
 			}
 
-			foreach (Episode episode in selectedEpisodes)
+			if (selectedEpisodes.Count > 0)
 			{
-				PlexViewModel.LeftSeason.RemoveEpisode(episode);
-				PlexViewModel.RightSeason.AddEpisode(episode);
+				foreach (Episode episode in selectedEpisodes)
+				{
+					PlexViewModel.LeftSeason.RemoveEpisode(episode);
+					PlexViewModel.RightSeason.AddEpisode(episode);
+				}
+
+				PlexViewModel.SelectedShow.MarkDirty();
 			}
 		}
 
