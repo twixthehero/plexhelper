@@ -61,7 +61,19 @@ namespace PlexHelper
 
 		private string ShowName { get { return Season.Show.Name; } }
 
-		public string Filename { get; private set; }
+		private string _filename;
+		public string Filename
+		{
+			get => _filename;
+			set
+			{
+				if (_filename != value)
+				{
+					_filename = value;
+					OnPropertyChanged();
+				}
+			}
+		}
 		public string FilenameNoExtension { get; private set; }
 
 		public Episode(int number, string episodePath = null, string originalFilename = null)
