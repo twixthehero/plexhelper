@@ -120,6 +120,8 @@ namespace PlexHelper
 					season.Save(showFolder);
 				}
 			}
+
+			MarkClean();
 		}
 
 		public Season this[int index]
