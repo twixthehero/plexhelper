@@ -168,8 +168,13 @@ namespace PlexHelper
 		{
 			StorageFile original = await StorageFile.GetFileFromPathAsync(EpisodePath);
 			string correctName = GetCorrectName();
-			await original.MoveAsync(seasonFolder, correctName);
-			EpisodePath = Path.Combine(seasonFolder.Path, correctName);
+			string destPath = Path.Combine(seasonFolder.Path, correctName);
+
+			if (original.Path != destPath)
+			{
+				await original.MoveAsync(seasonFolder, correctName);
+				EpisodePath = destPath;
+			}
 		}
 
 		public override bool Equals(object obj)

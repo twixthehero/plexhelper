@@ -31,9 +31,9 @@ namespace PlexHelper
 			Init();
 		}
 
-		private async void Init()
+		private void Init()
 		{
-			await data.LoadAsync(PlexViewModel);
+			data.LoadAsync(PlexViewModel);
 
 			if (PlexViewModel.Shows.Count > 0)
 			{
@@ -107,13 +107,15 @@ namespace PlexHelper
 			StorageFolder folder = await picker.PickSingleFolderAsync();
 			if (folder != null)
 			{
-				// todo
-				Windows.Storage.AccessCache.StorageApplicationPermissions.FutureAccessList.AddOrReplace("PickedFolderToken", folder);
-
 				Show show = new Show(null, folder.Name, folder.Path);
 
-				QueryOptions queryOptions = new QueryOptions(CommonFileQuery.OrderByName, VideoExtensions);
-				queryOptions.FolderDepth = FolderDepth.Shallow;
+				// add to list of places allowed
+				Windows.Storage.AccessCache.StorageApplicationPermissions.FutureAccessList.AddOrReplace(show.Id, folder);
+
+				QueryOptions queryOptions = new QueryOptions(CommonFileQuery.OrderByName, VideoExtensions)
+				{
+					FolderDepth = FolderDepth.Shallow
+				};
 				StorageFileQueryResult queryResult = folder.CreateFileQueryWithOptions(queryOptions);
 
 				IReadOnlyList<StorageFile> unsortedEpisodeFiles = await queryResult.GetFilesAsync();

@@ -2,8 +2,8 @@
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.IO;
-using System.Threading.Tasks;
 using Windows.Storage;
+using Windows.Storage.AccessCache;
 using Windows.Storage.Search;
 
 namespace PlexHelper
@@ -17,7 +17,7 @@ namespace PlexHelper
 		private int version;
 		private PlexViewModel viewModel;
 
-		public async Task<PlexViewModel> LoadAsync(PlexViewModel viewModel)
+		public async void LoadAsync(PlexViewModel viewModel)
 		{
 			version = settings.Values[KEY_VERSION] as int? ?? 1;
 			this.viewModel = viewModel;
@@ -39,12 +39,17 @@ namespace PlexHelper
 					settings.DeleteContainer(showKey);
 					continue;
 				}
+				catch (UnauthorizedAccessException)
+				{
+					settings.DeleteContainer(showKey);
+					continue;
+				}
 
 				viewModel.Shows.Add(show);
 
 				SortedList<int, Season> seasons = new SortedList<int, Season>();
 				Dictionary<string, HashSet<string>> filenames = new Dictionary<string, HashSet<string>>();
-
+				
 				foreach (string seasonKey in showContainer.Containers.Keys)
 				{
 					ApplicationDataContainer seasonContainer = showContainer.Containers[seasonKey];
@@ -257,11 +262,10 @@ namespace PlexHelper
 							}
 						}
 					}
-				}
+					}
 			}
 
 			Debug.WriteLine("done loading");
-			return viewModel;
 		}
 
 		public static bool IsEpisodeNamedCorrectly(string filename, string showName)
@@ -339,6 +343,11 @@ namespace PlexHelper
 		public void RemoveShowData(Show show)
 		{
 			settings.DeleteContainer(show.Id);
+
+			if (StorageApplicationPermissions.FutureAccessList.ContainsItem(show.Id))
+			{
+				StorageApplicationPermissions.FutureAccessList.Remove(show.Id);
+			}
 		}
 
 		public void SaveShowData(Show show)
