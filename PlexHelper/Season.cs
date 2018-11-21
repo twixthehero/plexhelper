@@ -128,6 +128,19 @@ namespace PlexHelper
 			}
 		}
 
+		public Episode GetEpisodeWithPath(string path)
+		{
+			foreach (Episode episode in Episodes)
+			{
+				if (episode.EpisodePath == path)
+				{
+					return episode;
+				}
+			}
+
+			return null;
+		}
+
 		public Episode this[int index]
 		{
 			get { return Episodes[index]; }

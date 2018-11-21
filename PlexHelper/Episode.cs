@@ -1,6 +1,7 @@
 ﻿using System.IO;
 using System;
 using Windows.Storage;
+using System.Threading.Tasks;
 
 namespace PlexHelper
 {
@@ -32,13 +33,12 @@ namespace PlexHelper
 					_manual = value;
 					OnPropertyChanged();
 
-					if (Season != null)
-					{
-						Season.RestoreOrdering();
-					}
+					Season?.RestoreOrdering();
 				}
 			}
 		}
+
+		private string _tempPath;
 
 		private string _episodePath;
 		public string EpisodePath
@@ -101,7 +101,10 @@ namespace PlexHelper
 				{
 					_season = value;
 
-					TryGetEpisodeNumberFromFilename();
+					if (!ManuallySet)
+					{
+						TryGetEpisodeNumberFromFilename();
+					}
 				}
 			}
 		}
@@ -176,14 +179,51 @@ namespace PlexHelper
 			return string.Format(ShowName + " s{0:00}e{1:00}{2}", Season.Number, Number, Path.GetExtension(EpisodePath));
 		}
 
-		public async void Save(StorageFolder seasonFolder)
+		/// <summary>
+		/// Moves this episode to a temp filename
+		/// </summary>
+		public async Task MoveToTemp()
 		{
 			StorageFile original = await StorageFile.GetFileFromPathAsync(EpisodePath);
+			string tmpName = GetCorrectName() + ".tmp";
+			_tempPath = Path.Combine(Path.GetDirectoryName(original.Path), tmpName);
+			await original.RenameAsync(tmpName);
+		}
+
+		public async void Save(StorageFolder seasonFolder)
+		{
+			StorageFile original = await StorageFile.GetFileFromPathAsync(_tempPath ?? EpisodePath);
 			string correctName = GetCorrectName();
 			string destPath = Path.Combine(seasonFolder.Path, correctName);
 
 			if (original.Path != destPath)
 			{
+				try
+				{
+					StorageFile dest = await StorageFile.GetFileFromPathAsync(destPath);
+
+					// move ep to tmp first
+					Episode destEp = Season?.GetEpisodeWithPath(destPath);
+					if (destEp == null)
+					{
+						foreach (Season season in Season.Show.Seasons)
+						{
+							destEp = season.GetEpisodeWithPath(destPath);
+
+							if (destEp != null)
+							{
+								break;
+							}
+						}
+					}
+
+					await destEp.MoveToTemp();
+				}
+				catch (FileNotFoundException)
+				{
+					// no problem, ok to move
+				}
+
 				await original.MoveAsync(seasonFolder, correctName);
 				EpisodePath = destPath;
 			}

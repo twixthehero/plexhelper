@@ -96,7 +96,11 @@ namespace PlexHelper
 						}
 
 						filenames[season.Name].Add(episode.Filename);
-						episodes.Add(episode.Number, episode);
+
+						if (!episodes.ContainsKey(episode.Number))
+						{
+							episodes.Add(episode.Number, episode);
+						}
 					}
 
 					foreach (Episode episode in episodes.Values)
